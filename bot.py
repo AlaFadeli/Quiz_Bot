@@ -1,3 +1,13 @@
+from datetime import datetime
+import sys
+now = datetime.now().hour
+if not (8 <=now < 24 ):
+    print("Outside allowed time. Exiting")
+    sys.exit(0)
+
+
+
+
 import json
 import random
 from telegram import Update
