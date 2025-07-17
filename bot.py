@@ -1,69 +1,97 @@
 import json
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import (Application, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler,ApplicationBuilder)
+import random
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+    ConversationHandler,
+)
 
-# Load your quiz questions
-with open("output.json", "r") as f:
-    questions = json.load(f)
+CHOOSE_TYPE, ASK_QUESTION, CHECK_ANSWER = range(3)
 
-# Simple user score tracking (in-memory or file)
-user_scores = {}
+# Load all questions from JSON file
+with open("all_questions.json", "r") as f:
+    questions_data = json.load(f)
 
-QUESTION, ANSWER = range(2)
+# Group questions by class
+questions_by_class = {
+    "ev": [q for q in questions_data if q["class"].lower() == "ev"],
+    "cv": [q for q in questions_data if q["class"].lower() == "cv"]
+}
 
-# Start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
-    user_scores[user_id] = {"score": 0, "current_q": 0}
-    await send_question(update, context)
-    return QUESTION
+    await update.message.reply_text("Welcome to FS Quiz Bot!\nType 'EV' or 'CV' to start.")
+    return CHOOSE_TYPE
 
-async def send_question(update, context):
-    user_id = str(update.effective_user.id)
-    q_index = user_scores[user_id]["current_q"]
-    if q_index >= len(questions):
-        await update.message.reply_text(f"🎉 Quiz finished! Your score: {user_scores[user_id]['score']} / {len(questions)}")
-        return ConversationHandler.END
+async def choose_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q_type = update.message.text.strip().lower()
 
-    q = questions[q_index]
-    context.user_data["correct_answer"] = q["answer"]
-    keyboard = [[option] for option in q["options"]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
-    await update.message.reply_text(f"Q{q['id']}: {q['question']}", reply_markup=reply_markup)
+    if q_type not in ["ev", "cv"]:
+        await update.message.reply_text("Please choose either 'EV' or 'CV'.")
+        return CHOOSE_TYPE
 
-async def receive_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
-    answer = update.message.text
-    correct = context.user_data.get("correct_answer")
-    if answer == correct:
-        user_scores[user_id]["score"] += 1
-        await update.message.reply_text("✅ Correct!")
+    selected_list = questions_by_class.get(q_type, [])
+    if not selected_list:
+        await update.message.reply_text("No questions available for this type.")
+        return CHOOSE_TYPE
+
+    question = random.choice(selected_list)
+    context.user_data["current_question"] = question
+
+    # Prepare options like A) ..., B) ...
+    option_lines = []
+    option_letters = ["A", "B", "C", "D", "E", "F"]
+    for i, ans in enumerate(question["options"]):
+        option_lines.append(f"{option_letters[i]}) {ans}")
+
+    # Save correct answer
+    context.user_data["current_answer"] = question["correct_option"]
+
+    # Build question text
+    q_text = f"📘 *Question:*\n{question['text']}\n\n" + "\n".join(option_lines)
+    await update.message.reply_text(q_text, parse_mode="Markdown")
+
+    return CHECK_ANSWER
+
+async def check_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_answer = update.message.text.strip().upper()
+    current_question = context.user_data.get("current_question", {})
+    correct_answer = current_question.get("correct_option", "")
+    explanation = current_question.get("explanation", "No explanation provided.")
+
+    if user_answer == correct_answer:
+        reply = "✅ *Correct!*"
     else:
-        await update.message.reply_text(f"❌ Wrong! Correct answer: {correct}")
+        reply = f"❌ *Wrong!* The correct answer was: {correct_answer}"
 
-    user_scores[user_id]["current_q"] += 1
-    return await send_question(update, context)
+    reply += f"\n\n📘 *Explanation:*\n{explanation}"
 
-# Stop command
+    await update.message.reply_text(reply, parse_mode="Markdown")
+    await update.message.reply_text("Type 'EV' or 'CV' to get another question.")
+    return CHOOSE_TYPE
+
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Quiz cancelled.")
+    await update.message.reply_text("Quiz cancelled. Type /start to try again.")
     return ConversationHandler.END
 
-# Main
 def main():
     app = ApplicationBuilder().token("8167373653:AAGYS2IjLOubzyciagnoV2dKu8w11s-h3Ow").build()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            QUESTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer)],
+            CHOOSE_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, choose_type)],
+            CHECK_ANSWER: [MessageHandler(filters.TEXT & ~filters.COMMAND, check_answer)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
     app.add_handler(conv_handler)
+    print("Bot running...")
     app.run_polling()
 
 if __name__ == "__main__":
     main()
-
