@@ -24,13 +24,3 @@ This is a Telegram bot built with Python that answers questions, manages quizzes
 
 ---
 
-## 🛠️ Setup & Deployment
-
-###  Clone the project
-
-```bash
-git clone https://github.com/AlaFadeli/Quiz_Bot
-cd Quiz_Bot
-
-
-
