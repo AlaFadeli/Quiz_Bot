@@ -10,6 +10,7 @@ if not (8 <=now < 24 ):
 
 import json
 import random
+import os
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -21,6 +22,8 @@ from telegram.ext import (
 )
 
 CHOOSE_TYPE, ASK_QUESTION, CHECK_ANSWER = range(3)
+
+API_TOKEN =  os.getenv("QUIZ_BOT_TOKEN")
 
 # Load all questions from JSON file
 with open("all_questions.json", "r") as f:
@@ -85,7 +88,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 def main():
-    app = ApplicationBuilder().token("8167373653:AAGYS2IjLOubzyciagnoV2dKu8w11s-h3Ow").build()
+    app = ApplicationBuilder().token(API_TOKEN).build()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
