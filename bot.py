@@ -51,16 +51,13 @@ async def choose_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     question = random.choice(selected_list)
     context.user_data["current_question"] = question
 
-    # Prepare options like A) ..., B) ...
     option_lines = []
     option_letters = ["A", "B", "C", "D", "E", "F"]
     for i, ans in enumerate(question["options"]):
         option_lines.append(f"{option_letters[i]}) {ans}")
 
-    # Save correct answer
     context.user_data["current_answer"] = question["correct_option"]
 
-    # Build question text
     q_text = f"📘 *Question:*\n{question['text']}\n\n" + "\n".join(option_lines)
     await update.message.reply_text(q_text, parse_mode="Markdown")
 
