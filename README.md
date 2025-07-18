@@ -8,11 +8,11 @@ This is a Telegram bot built with Python that answers questions, manages quizzes
 ## 🚀 Features
 
 - ✅ Built with python-telegram-bot
-- ⏱️ Auto-scheduling: runs daily from 8 AM to midnight
+- ⏱️ Auto-scheduling: runs daily from 8 AM to midnight (datetime)
 - ☁️ Deployed on [Railway](https://railway.app/) (no local server needed)
-- 🧠 Quiz/FAQ logic using a structured JSON file
-- 🔒 Secure: secrets stored as Railway environment variables
-
+- 🧠 Quiz logic using a structured JSON file
+- 🔒 Secure: secrets stored as Railway environment variables (bot token)
+- 
 ---
 
 ## 📦 Tech Stack
@@ -26,8 +26,11 @@ This is a Telegram bot built with Python that answers questions, manages quizzes
 
 ## 🛠️ Setup & Deployment
 
-### 1. Clone the project
+###  Clone the project
 
-`bash
+```bash
 git clone https://github.com/AlaFadeli/Quiz_Bot
 cd Quiz_Bot
+
+
+
