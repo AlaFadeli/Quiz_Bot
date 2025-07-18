@@ -13,5 +13,10 @@ Welcome, and thank you for your interest in contributing to Quiz_Bot! This Teleg
 
 2. Clone your fork : 
    ```bash
-   git clone https://github.com/your-username/Quiz_Bot.git
+   git clone https://github.com/AlaFadeli/Quiz_Bot.git
    cd Quiz_Bot
+
+3. Push changes to a new branch 'not main'
+
+4. open a PR (pull request)
+
